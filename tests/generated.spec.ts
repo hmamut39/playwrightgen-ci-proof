@@ -13,7 +13,19 @@ test.describe('Card payment succeeds', () => {
   const cardCVC = process.env.TEST_CARD_CVC;
   const cardName = process.env.TEST_CARD_NAME ?? 'Test User';
 
+  // Everything this test needs before it can do anything at all. A guard in
+  // the test body runs after this hook, which is why every run failed in the
+  // navigation below instead of skipping.
+  const missing = [
+    process.env.TEST_BASE_URL ? null : 'TEST_BASE_URL',
+    cardNumber ? null : 'TEST_CARD_NUMBER',
+    cardExpiry ? null : 'TEST_CARD_EXPIRY',
+    cardCVC ? null : 'TEST_CARD_CVC',
+  ].filter(Boolean);
+
   test.beforeEach(async ({ page }) => {
+    test.skip(missing.length > 0, `Not run: ${missing.join(', ')} not set.`);
+
     // Navigate explicitly to the cart page. Base URL must be set in the test config (see configuration field).
     await page.goto('/cart');
 
@@ -22,8 +34,6 @@ test.describe('Card payment succeeds', () => {
   });
 
   test('[pwg:92ef04d1-770c-4ca4-b627-3dfd7dd93520] submitting a valid card displays an order confirmation', async ({ page }) => {
-    // If payment credentials are not provided, skip the test rather than embedding a card.
-    test.skip(!cardNumber || !cardExpiry || !cardCVC, 'Skipping: test card data not provided via environment variables (TEST_CARD_NUMBER, TEST_CARD_EXPIRY, TEST_CARD_CVC).');
 
     // Helper: attempt to locate an input using a list of candidate labels/placeholders/testids.
     async function findField(candidates: string[]) {
