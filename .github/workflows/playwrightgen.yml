@@ -52,6 +52,13 @@ jobs:
       - name: Run Playwright
         id: playwright
         continue-on-error: true
+        # The address under test. A test PlaywrightGen wrote opens './',
+        # relative to Playwright's baseURL, so a run with no address reports a
+        # skip or a failure that is about the missing address rather than the
+        # application. Set as a repository variable, never a secret: it is a
+        # public demo page.
+        env:
+          BASE_URL: ${{ vars.BASE_URL }}
         run: npx playwright test --reporter=json > playwright-report.json
 
       # Traces, screenshots and videos live on the runner, which is destroyed
